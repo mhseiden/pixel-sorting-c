@@ -5,9 +5,11 @@ SRC=src
 INCLUDE=include
 BIN=bin
 
-all: $(SRC)/read_write.o $(SRC)/sorters.o mkbin
-	$(CC) $(LIBJPEG) $(FLAGS) $(SRC)/main.cpp -c -o $(SRC)/main.o
+all: $(SRC)/read_write.o $(SRC)/sorters.o $(SRC)/main.o mkbin
 	$(CC) $(LIBJPEG) $(FLAGS) $(SRC)/*.o -o bin/pixelsort
+
+$(SRC)/main.o: $(SRC)/main.cpp
+	$(CC) $(LIBJPEG) $(FLAGS) $(SRC)/main.cpp -c -o $(SRC)/main.o
 
 $(SRC)/read_write.o: $(SRC)/read_write.cpp
 	$(CC) $(LIBJPEG) $(FLAGS) $(SRC)/read_write.cpp -c -o $(SRC)/read_write.o

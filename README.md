@@ -5,9 +5,11 @@ A command line tool for pixel sorting your images, written in C.
 ## Getting Started
 You'll need [libjpeg](http://libjpeg.sourceforge.net/) and GCC 4.7 to compile the binaries. Once you've handled the dependencies and successfully run `make`, you can pixel sort you images!
 
-
 ## CLI Tool Usage
 ``usage: pixelsort [average|dark|light] [source.jpg] [destination.jpg]``
+
+## Examples
++ [pixelsort'd Van Gogh](http://imgur.com/a/kmtxm)
 
 ## Next Steps
 This tool was written hastily, so it isn't pure C. However, it's not that far off, so priority number 1 is moving off of g++ and onto gcc. From there, the goal is to add on as many interesting, exciting pixel sorting algorithms as can be conjured up from the internets' collective imagination!
