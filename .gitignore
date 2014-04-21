@@ -1,4 +1,4 @@
 *.o
 bin/*
 .DS_Store
-.jpg
+*.jpg
