@@ -191,6 +191,7 @@ void make_sort_plan(const Image * img, const Context_t * ctx, SortPlan_t * plan)
 }
 
 void do_sort(Pixel_t * pixels, const SortPlan_t * plan) {
+	// TODO: Processing runs in parallel. Except thread pools and work queues. :-(
 	for(int run = 0; run < plan->run_count; ++run) {
 		(*plan->run_processor_fn)(pixels + (run * plan->run_length), plan);
 	}
