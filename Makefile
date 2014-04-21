@@ -1,28 +1,22 @@
-CC=g++
-FLAGS=-std=c++11
-LIBJPEG=-l jpeg
-SRC=src
-INCLUDE=include
-BIN=bin
+CC       := g++
+LD       := g++
+CXXFLAGS := -std=c++11
+LDFLAGS  := -ljpeg
 
-all: $(SRC)/sorting.o $(SRC)/sorting_context.o $(SRC)/read_write.o $(SRC)/main.o mkbin
-	$(CC) $(LIBJPEG) $(FLAGS) $(SRC)/*.o -o bin/pixelsort
+SRC_DIR := src
+INCLUDE := include
+BIN     := bin
 
-$(SRC)/main.o: $(SRC)/main.cpp
-	$(CC) $(LIBJPEG) $(FLAGS) $(SRC)/main.cpp -c -o $(SRC)/main.o
+OBJECTS := $(SRC_DIR)/sorting.o $(SRC_DIR)/sorting_context.o $(SRC_DIR)/read_write.o $(SRC_DIR)/main.o
 
-$(SRC)/read_write.o: $(SRC)/read_write.cpp
-	$(CC) $(LIBJPEG) $(FLAGS) $(SRC)/read_write.cpp -c -o $(SRC)/read_write.o
+all: mkbin bin/pixelsort
 
-$(SRC)/sorting_context.o: $(SRC)/sorting_context.cpp
-	$(CC) $(LIBJPEG) $(FLAGS) $(SRC)/sorting_context.cpp -c -o $(SRC)/sorting_context.o
-
-$(SRC)/sorting.o: $(SRC)/sorting.cpp
-	$(CC) $(LIBJPEG) $(FLAGS) $(SRC)/sorting.cpp -c -o $(SRC)/sorting.o
+bin/pixelsort: $(OBJECTS)
+	$(LD) -o $(@) $(CXXFLAGS) $(LDFLAGS) $(^)
 
 mkbin:
 	mkdir -p $(BIN)
 
 clean: 
-	rm -f *.o $(SRC)/*.o
+	rm -f $(OBJECTS)
 	rm -rf $(BIN)
