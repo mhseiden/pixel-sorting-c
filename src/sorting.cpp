@@ -250,6 +250,7 @@ SortPlan_t * create_sort_plan(const Image * img, const Context_t * ctx, Orientat
 			plan->sort_val_fn = XOR_VAL;
 			break;
 	}
+	return plan;
 }
 
 void do_sort(Pixel_t * pixels, const SortPlan_t * plan) {
