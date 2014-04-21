@@ -6,7 +6,8 @@ typedef struct PixelSortingContext {
 	Comparison_e comparison;
 	SortDirection_e sort_direction;
 	RunType_e run_type;
-	void * addendum;
+	void * addendum_one;
+	void * addendum_two;
 } PixelSortingContext_t;
 
 struct PixelSortingContext * create_context() {
@@ -15,7 +16,8 @@ struct PixelSortingContext * create_context() {
 	ctx->comparison = XOR;
 	ctx->sort_direction = ASC;
 	ctx->run_type = ALL;
-	ctx->addendum = NULL;
+	ctx->addendum_one = NULL;
+	ctx->addendum_two = NULL;
 	return ctx;
 }
 
@@ -55,10 +57,10 @@ SortDirection_e get_sort_direction(const struct PixelSortingContext * ctx) {
 	return ctx->sort_direction;
 }
 
-void set_threshold(struct PixelSortingContext * ctx, long threshold) {
-	ctx->addendum = (void*)threshold;
+void set_threshold(struct PixelSortingContext * ctx, /*RunType_e t, */long threshold) {
+	ctx->addendum_one = (void*)threshold;
 }
 
-long get_threshold(const struct PixelSortingContext * ctx) {
-	return (long)ctx->addendum;
+long get_threshold(const struct PixelSortingContext * ctx/*, RunType_e t*/) {
+	return (long)ctx->addendum_one;
 }

@@ -72,6 +72,8 @@ struct Image * read_image(const char * const file) {
 	jpeg_destroy_decompress(&d_info);
 	fclose(src);
 
+	cout << "width: " << img->width << " height: " << img->height << endl;
+
 	return img;
 }
 

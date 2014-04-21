@@ -26,16 +26,22 @@ typedef int(*sort_val_fn_t)(const Pixel_t *);
 typedef int(*compare_fn_t)(const Pixel_t *, const Pixel_t *);
 typedef void(*run_processor_fn_t)(Pixel_t *, const struct SortPlan *);
 
+struct SortPlan;
+
 typedef struct SortPlan {
 	int run_count;
 	int run_length;
 	int is_ascending;
+	long threshold;
+
+	Orientation_e orientation;
 
 	run_processor_fn_t run_processor_fn;	
 	sort_val_fn_t sort_val_fn;
 	compare_fn_t compare_fn;
 
 	const Context_t * context_ptr;
+	struct SortPlan * next_step_ptr;
 } SortPlan_t;
 
 // Sorter
@@ -69,7 +75,7 @@ static int XOR_CMP(const Pixel_t *, const Pixel_t *);
 /**
  * Create a list of Pixel_t objects using the given Image and PixelSortingContext
  */
-static Pixel_t * create_pixel_list(const struct Image * const, const Context_t *);
+static Pixel_t * create_pixel_list(const struct Image * const, const SortPlan_t *);
 
 /**
  * Free the memory used by the pixel list
@@ -79,12 +85,22 @@ static void destroy_pixel_list(Pixel_t *);
 /**
  * Sync the pixel list with the given image. ALWAYS call before returning from a sort call.
  */
-static void sync_pixels(struct Image *, const Context_t *, const Pixel_t *);
+static void sync_pixels(struct Image *, const SortPlan_t *, const Pixel_t *);
 
 /**
  * Set the sorting functions to use to for this run
  */
-static void make_sort_plan(const Image *, const Context_t *, SortPlan_t *);
+static SortPlan_t * create_sort_plan(const Image *, const Context_t *);
+
+/**
+ *
+ */
+static SortPlan_t * create_sort_plan(const Image *, const Context_t *, Orientation_e);
+
+/**
+ * Destroy the sort plan
+ */
+static void destroy_sort_plan(SortPlan_t *);
 
 /**
  * Does the actual sort
@@ -92,63 +108,109 @@ static void make_sort_plan(const Image *, const Context_t *, SortPlan_t *);
 static void do_sort(Pixel_t *, const SortPlan_t *);
 
 void sort(struct Image * img, const Context_t * ctx) {
-	// Create the pixel list and get the run length
-	Pixel_t * pixels = create_pixel_list(img, ctx);
+	// Create a list of sort plan steps
+	SortPlan_t * plan_steps = create_sort_plan(img, ctx);
 
-	// Set all of the sorting functions
-	SortPlan_t plan;
-	make_sort_plan(img, ctx, &plan);
+	for(const SortPlan_t * step = plan_steps; NULL != step; step = step->next_step_ptr) {
+		Pixel_t * pixels = create_pixel_list(img, step);
+		do_sort(pixels, step);
+		sync_pixels(img, step, pixels);
+		destroy_pixel_list(pixels);
+	}
 
-	do_sort(pixels, &plan);
-
-	sync_pixels(img, ctx, pixels);
-	destroy_pixel_list(pixels);
+	destroy_sort_plan(plan_steps);
 }
 
-Pixel_t * create_pixel_list(const struct Image * const img, const Context_t * ctx) {
+Pixel_t * create_pixel_list(const struct Image * const img, const SortPlan_t * plan_ptr) {
+	const Context_t * ctx = plan_ptr->context_ptr;
 	const unsigned char * const buffer = get_buffer(img);
 	const int width = get_width(img), height = get_height(img), components = get_components(img);
-	assert(COMPONENTS == components); // TODO: Better handling of this...
-	assert(ROW == get_orientation(ctx)); // TODO: column sorting
+	assert(COMPONENTS == components);
 
 	Pixel_t * pixels = (Pixel_t*)malloc(sizeof(Pixel_t) * width * height);
 
-	for(int idx = 0, len = width * height; idx < len; ++idx) {
-		pixels[idx].data = buffer + (idx * components);
+	if(ROW == plan_ptr->orientation) {
+		for(int i = 0; i < height; ++i) {
+			for(int j = 0; j < width; ++j) {
+				int idx = ((i * width) + j);
+				pixels[idx].data = buffer + (idx * components);
+			}
+		}
+	} else {
+		assert(COLUMN == plan_ptr->orientation);
+		for(int i = 0; i < width; ++i) {
+			for(int j = 0; j < height; ++j) {
+				int src_idx = ((j * width) + i);
+				int dst_idx = ((i * height) + j);
+				pixels[dst_idx].data = buffer + (src_idx * components);
+			}
+		}
 	}
 
 	return pixels;
+}
+
+void sync_pixels(struct Image * img, const SortPlan_t * plan_ptr, const Pixel_t * pixels) {
+	const int width = get_width(img), height = get_height(img), components = get_components(img);
+	assert(COMPONENTS == components);
+
+	unsigned char * buffer = (unsigned char *)malloc(sizeof(unsigned char) * width * height * components);
+
+	if(ROW == plan_ptr->orientation) {
+		for(int i = 0; i < height; ++i) {
+			for(int j = 0; j < width; ++j) {
+				int idx = ((i * width) + j);
+				unsigned char * data = buffer + (components * idx);
+				for(int c = 0; c < components; ++c) data[c] = pixels[idx].data[c];
+			}
+		}
+	} else {
+		assert(COLUMN == plan_ptr->orientation);
+		for(int i = 0; i < width; ++i) {
+			for(int j = 0; j < height; ++j) {
+				int src_idx = ((i * height) + j);
+				int dst_idx = ((j * width) + i);
+				unsigned char * data = buffer + (components * dst_idx);
+				for(int c = 0; c < components; ++c) data[c] = pixels[src_idx].data[c];
+			}
+		}
+	}
+
+	set_buffer(img, buffer);
 }
 
 void destroy_pixel_list(Pixel_t * list) {
 	free(list);
 }
 
-int get_run_length(const struct Image * img, const Context_t * ctx) {
-	return (ROW == get_orientation(ctx)) ? get_width(img) : get_height(img);
-}
-
-void sync_pixels(struct Image * img, const Context_t * ctx, const Pixel_t * pixels) {
-	const int width = get_width(img), height = get_height(img), components = get_components(img);
-	assert(COMPONENTS == components); // TODO: Better handling of this...
-	assert(ROW == get_orientation(ctx));
-
-	unsigned char * buffer = (unsigned char *)malloc(sizeof(unsigned char) * width * height * components);
-
-	// TODO: Column sync
-	for(int idx = 0, len = width * height; idx < len; ++idx) {
-		unsigned char * data = buffer + (components * idx);
-		for(int c = 0; c < components; ++c) data[c] = pixels[idx].data[c];
+SortPlan_t * create_sort_plan(const Image * img, const Context_t * ctx) {
+	if(ROW == get_orientation(ctx)) {
+		return create_sort_plan(img, ctx, ROW);
+	} else if(COLUMN == get_orientation(ctx)) {
+		return create_sort_plan(img, ctx, COLUMN);
+	} else {
+		SortPlan_t * plan_ptr = create_sort_plan(img, ctx, ROW);
+		plan_ptr->next_step_ptr = create_sort_plan(img, ctx, COLUMN);
+		return plan_ptr;
 	}
-
-	set_buffer(img, buffer);
 }
 
-void make_sort_plan(const Image * img, const Context_t * ctx, SortPlan_t * plan) {
+void destroy_sort_plan(SortPlan_t * plan_list_ptr) {
+	while(NULL != plan_list_ptr) {
+		SortPlan_t * next = plan_list_ptr->next_step_ptr;
+		free(plan_list_ptr);
+		plan_list_ptr = next;
+	}
+}
+
+SortPlan_t * create_sort_plan(const Image * img, const Context_t * ctx, Orientation_e o) {
+	SortPlan_t * plan = (SortPlan_t*)malloc(sizeof(SortPlan_t));
+	plan->next_step_ptr = NULL;
+	plan->orientation = o;
 	plan->context_ptr = ctx;
 	plan->is_ascending = (ASC == get_sort_direction(ctx)) ? 1 : 0;
-	plan->run_length = (ROW == get_orientation(ctx)) ? get_width(img)  : get_height(img);
-	plan->run_count	 = (ROW == get_orientation(ctx)) ? get_height(img) : get_width(img);
+	plan->run_length = (ROW == o) ? get_width(img)  : get_height(img);
+	plan->run_count	 = (ROW == o) ? get_height(img) : get_width(img);
 
 	// Set the run type
 	switch(get_run_type(ctx)) {
@@ -197,13 +259,13 @@ void do_sort(Pixel_t * pixels, const SortPlan_t * plan) {
 	}
 }
 
-void dark_run_processor(Pixel_t * pixels, const SortPlan_t * plan) {
-	const int length = plan->run_length, threshold = get_threshold(plan->context_ptr);
+void dark_run_processor(Pixel_t * pixels, const SortPlan_t * plan_ptr) {
+	const int length = plan_ptr->run_length, threshold = get_threshold(plan_ptr->context_ptr);
 	Pixel_t * cursor = pixels;
 	while(length > (cursor - pixels)) {
-		Pixel_t * start = cursor + get_first_non_dark(cursor, plan->sort_val_fn, length - (cursor - pixels), threshold);
-		Pixel_t * end = start + get_first_dark(start, plan->sort_val_fn, length - (start - pixels), threshold);
-		sort_run(start, end - start, plan->compare_fn);
+		Pixel_t * start = cursor + get_first_non_dark(cursor, plan_ptr->sort_val_fn, length - (cursor - pixels), threshold);
+		Pixel_t * end = start + get_first_dark(start, plan_ptr->sort_val_fn, length - (start - pixels), threshold);
+		sort_run(start, end - start, plan_ptr->compare_fn);
 		cursor = end;
 	}
 }

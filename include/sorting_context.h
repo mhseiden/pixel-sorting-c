@@ -3,7 +3,7 @@
 
 struct PixelSortingContext;
 
-enum Orientation_e { COLUMN, ROW };
+enum Orientation_e { COLUMN, ROW, BOTH };
 enum RunType_e { ALL, DARK, LIGHT };
 enum Comparison_e { AVG, MUL, MAX, MIN, XOR };
 enum SortDirection_e { ASC, DESC };

@@ -6,6 +6,10 @@
 #include "../include/sorting_context.h"
 #include "../include/sorting.h"
 
+#define ARG_ROW "row"
+#define ARG_COLUMN "column"
+#define ARG_BOTH "both"
+
 #define ARG_DARK "dark"
 #define ARG_LIGHT "light"
 #define ARG_ALL "all"
@@ -19,17 +23,19 @@
 using namespace std;
 
 int main(const int argc, const char* argv[]) {
-	if(argc != 5) {
-		printf("usage: pixelsort [all|dark threshold|light threshold] [avg|mul|max|min|xor] [src.jpg] [dest.jpg]\n");
+	if(argc < 6) {
+		printf("usage: pixelsort [row|column|both] [all|dark threshold|light threshold] [avg|mul|max|min|xor] [src.jpg] [dest.jpg]\n");
 		return 1;
 	}
 
 	// Set up the argument strings
-	const char * method = argv[1];
-	const char * comparator = argv[2];
-	const char * source = argv[3];
-	const char * destination = argv[4];
+	const char * orientation = argv[1];
+	const char * method = argv[2];
+	const char * comparator = argv[3];
+	const char * source = argv[4];
+	const char * destination = argv[5];
 
+	printf("Using orientation: %s\n", orientation);
 	printf("Using method: %s\n", method);
 	printf("Using comparator: %s\n", comparator);
 	printf("Using source: %s\n", source);
@@ -38,16 +44,22 @@ int main(const int argc, const char* argv[]) {
 	struct Image * image = read_image(source);
 	struct PixelSortingContext * ctx = create_context();	
 
-	set_orientation(ctx, ROW);
 	set_sort_direction(ctx, ASC);
 
+	if(0 == strcmp(ARG_ROW, orientation)) {
+		set_orientation(ctx, ROW);
+	} else if(0 == strcmp(ARG_COLUMN, orientation)) {
+		set_orientation(ctx, ROW);
+	} else {
+		set_orientation(ctx, BOTH);
+	}
 
 	if(0 == strcmp(ARG_DARK, method)) {
 		set_run_type(ctx, DARK);
-		set_threshold(ctx, 45);
+		set_threshold(ctx, /*DARK,*/ 45);
 	} else if(0 == strcmp(ARG_LIGHT, method)) {
 		set_run_type(ctx, LIGHT);
-		set_threshold(ctx, 210);
+		set_threshold(ctx, /*LIGHT,*/ 210);
 	} else {
 		set_run_type(ctx, ALL);
 	}
