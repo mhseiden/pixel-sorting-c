@@ -1,27 +1,70 @@
-#include <iostream>
-#include <string>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
 
 #include "../include/read_write.h"
-#include "../include/sorters.h"
+#include "../include/sorting_context.h"
+#include "../include/sorting.h"
+
+#define ARG_DARK "dark"
+#define ARG_LIGHT "light"
+#define ARG_ALL "all"
+
+#define ARG_AVG "avg"
+#define ARG_MUL "mul"
+#define ARG_MAX "max"
+#define ARG_MIN "min"
+#define ARG_XOR "xor"
 
 using namespace std;
 
 int main(const int argc, const char* argv[]) {
-	if(argc != 4) {
-		cout << "usage: pixelsort [average|dark|light] [source.jpg] [destination.jpg]" << endl;
+	if(argc != 5) {
+		printf("usage: pixelsort [all|dark threshold|light threshold] [avg|mul|max|min|xor] [src.jpg] [dest.jpg]\n");
 		return 1;
 	}
 
-	struct Image * image = read_image(argv[2]);
+	// Set up the argument strings
+	const char * method = argv[1];
+	const char * comparator = argv[2];
+	const char * source = argv[3];
+	const char * destination = argv[4];
 
-	string method(argv[1]);
-	if("dark" == method) {
-		dark_sorter(image, 45);
-	} else if("light" == method) {
-		light_sorter(image, 210);
+	printf("Using method: %s\n", method);
+	printf("Using comparator: %s\n", comparator);
+	printf("Using source: %s\n", source);
+	printf("Using destination: %s\n", destination);
+
+	struct Image * image = read_image(source);
+	struct PixelSortingContext * ctx = create_context();	
+
+	set_orientation(ctx, ROW);
+	set_sort_direction(ctx, ASC);
+
+
+	if(0 == strcmp(ARG_DARK, method)) {
+		set_run_type(ctx, DARK);
+		set_threshold(ctx, 45);
+	} else if(0 == strcmp(ARG_LIGHT, method)) {
+		set_run_type(ctx, LIGHT);
+		set_threshold(ctx, 210);
 	} else {
-		average_sorter(image);
+		set_run_type(ctx, ALL);
 	}
 
-	write_image(image, argv[3]);
+	if(0 == strcmp(ARG_AVG, comparator)) {
+		set_comparison(ctx, AVG);
+	} else if(0 == strcmp(ARG_MUL, comparator)) {
+		set_comparison(ctx, MUL);
+	} else if(0 == strcmp(ARG_MAX, comparator)) {
+		set_comparison(ctx, MAX);
+	} else if(0 == strcmp(ARG_MIN, comparator)) {
+		set_comparison(ctx, MIN);
+	} else {
+		set_comparison(ctx, XOR);
+	}
+
+	sort(image, ctx);
+
+	write_image(image, destination);
 }

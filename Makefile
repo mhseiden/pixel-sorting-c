@@ -5,7 +5,7 @@ SRC=src
 INCLUDE=include
 BIN=bin
 
-all: $(SRC)/read_write.o $(SRC)/sorters.o $(SRC)/main.o mkbin
+all: $(SRC)/sorting.o $(SRC)/sorting_context.o $(SRC)/read_write.o $(SRC)/main.o mkbin
 	$(CC) $(LIBJPEG) $(FLAGS) $(SRC)/*.o -o bin/pixelsort
 
 $(SRC)/main.o: $(SRC)/main.cpp
@@ -14,8 +14,11 @@ $(SRC)/main.o: $(SRC)/main.cpp
 $(SRC)/read_write.o: $(SRC)/read_write.cpp
 	$(CC) $(LIBJPEG) $(FLAGS) $(SRC)/read_write.cpp -c -o $(SRC)/read_write.o
 
-$(SRC)/sorters.o: $(SRC)/sorters.cpp
-	$(CC) $(LIBJPEG) $(FLAGS) $(SRC)/sorters.cpp -c -o $(SRC)/sorters.o
+$(SRC)/sorting_context.o: $(SRC)/sorting_context.cpp
+	$(CC) $(LIBJPEG) $(FLAGS) $(SRC)/sorting_context.cpp -c -o $(SRC)/sorting_context.o
+
+$(SRC)/sorting.o: $(SRC)/sorting.cpp
+	$(CC) $(LIBJPEG) $(FLAGS) $(SRC)/sorting.cpp -c -o $(SRC)/sorting.o
 
 mkbin:
 	mkdir -p $(BIN)

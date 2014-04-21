@@ -22,7 +22,6 @@ typedef struct jpeg_error_mgr jpeg_error_mgr_t;
 typedef struct Pixel Pixel_t;
 
 typedef struct Image {
-	Pixel_t *pixels;
 	unsigned char *buffer;
 	int width;
 	int height;
@@ -73,11 +72,6 @@ struct Image * read_image(const char * const file) {
 	jpeg_destroy_decompress(&d_info);
 	fclose(src);
 
-	img->pixels = new Pixel_t[img->width * img->height];
-	for(int idx = 0, len = img->width * img->height; idx < len; ++idx) {
-		img->pixels[idx] = { img->buffer + (idx * img->components), img->components };
-	}
-
 	return img;
 }
 
@@ -88,7 +82,7 @@ void write_image(Image_t * img, const char * const file) {
 	}
 
 	// Sync the pixel array with the buffer
-	sync_buffer(img);
+	// sync_buffer(img);
 
 	// Create the compressor structures
 	jpeg_compress_t c_info;
@@ -122,34 +116,29 @@ void write_image(Image_t * img, const char * const file) {
 	fclose(dest);
 
 	delete[] img->buffer;
-	delete[] img->pixels;
 	delete img;
 }
 
 void sync_buffer(Image_t * img) {
-	unsigned char * new_buf = new unsigned char[img->width * img->height * img->components];
-	for(int idx = 0, len = img->width * img->height; idx < len; ++idx) {
-		Pixel_t pixel = img->pixels[idx];
-		unsigned char * new_data = new_buf + (img->components * idx);
-		for(int c = 0; c < img->components; ++c) new_data[c] = pixel.data[c];
-		pixel.data = new_data;
-	}
-	delete[] img->buffer;
-	img->buffer = new_buf;
 }
 
-int get_width(struct Image * img) {
+int get_width(const struct Image * const img) {
 	return img->width;
 }
 
-int get_height(struct Image * img) {
+int get_height(const struct Image * const img) {
 	return img->height;
 }
 
-int get_components(struct Image * img) {
+int get_components(const struct Image * const img) {
 	return img->components;
 }
 
-struct Pixel * get_pixels(struct Image * img) {
-	return img->pixels;
+const unsigned char * const get_buffer(const struct Image * const img) {
+	return img->buffer;
+}
+
+void set_buffer(struct Image * img, unsigned char * buffer) {
+	free(img->buffer);
+	img->buffer = buffer;
 }
