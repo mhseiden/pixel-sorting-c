@@ -1,6 +1,6 @@
 CC       := g++
 LD       := g++
-CXXFLAGS := -std=c++11 -O3 -Werror -Wall
+CXXFLAGS := -std=c++11 -Werror -Wall -O3
 LDFLAGS  := -ljpeg
 
 SRC_DIR := src

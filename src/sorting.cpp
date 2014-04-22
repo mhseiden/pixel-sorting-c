@@ -5,6 +5,9 @@
 
 #define COMPONENTS 3
 
+#define CMP_FN inline int
+#define VAL_FN inline int
+
 #define AVG_VAL avg_val
 #define MUL_VAL mul_val
 #define MAX_VAL max_val
@@ -19,7 +22,11 @@
 
 struct SortPlan;
 typedef struct PixelSortingContext Context_t;
-typedef struct Pixel { const unsigned char * data; } Pixel_t;
+typedef struct Pixel {
+	const unsigned char r;
+	const unsigned char g; 
+	const unsigned char b; 
+} Pixel_t;
 
 // Sorting Function Typedefs
 typedef int(*sort_val_fn_t)(const Pixel_t *);
@@ -78,11 +85,6 @@ static int XOR_CMP(const Pixel_t *, const Pixel_t *);
 static Pixel_t * create_pixel_list(const struct Image * const, const SortPlan_t *);
 
 /**
- * Free the memory used by the pixel list
- */
-static void destroy_pixel_list(Pixel_t *);
-
-/**
  * Sync the pixel list with the given image. ALWAYS call before returning from a sort call.
  */
 static void sync_pixels(struct Image *, const SortPlan_t *, const Pixel_t *);
@@ -115,7 +117,6 @@ void sort(struct Image * img, const Context_t * ctx) {
 		Pixel_t * pixels = create_pixel_list(img, step);
 		do_sort(pixels, step);
 		sync_pixels(img, step, pixels);
-		destroy_pixel_list(pixels);
 	}
 
 	destroy_sort_plan(plan_steps);
@@ -123,20 +124,13 @@ void sort(struct Image * img, const Context_t * ctx) {
 
 Pixel_t * create_pixel_list(const struct Image * const img, const SortPlan_t * plan_ptr) {
 	const unsigned char * const buffer = get_buffer(img);
-	const int width = get_width(img), height = get_height(img), components = get_components(img);
-	assert(COMPONENTS == components);
+	// const int width = get_width(img), height = get_height(img), components = get_components(img);
+	// assert(COMPONENTS == components);
 
-	Pixel_t * pixels = (Pixel_t*)malloc(sizeof(Pixel_t) * width * height);
 
-	if(ROW == plan_ptr->orientation) {
-		for(int i = 0; i < height; ++i) {
-			for(int j = 0; j < width; ++j) {
-				int idx = ((i * width) + j);
-				pixels[idx].data = buffer + (idx * components);
-			}
-		}
-	} else {
-		assert(COLUMN == plan_ptr->orientation);
+	/*
+	if(ROW != plan_ptr->orientation) {
+		Pixel_t * pixels = (Pixel_t*)malloc(sizeof(Pixel_t) * width * height);
 		for(int i = 0; i < width; ++i) {
 			for(int j = 0; j < height; ++j) {
 				int src_idx = ((j * width) + i);
@@ -145,26 +139,19 @@ Pixel_t * create_pixel_list(const struct Image * const img, const SortPlan_t * p
 			}
 		}
 	}
+	*/
 
-	return pixels;
+	return (Pixel_t*)buffer;
 }
 
 void sync_pixels(struct Image * img, const SortPlan_t * plan_ptr, const Pixel_t * pixels) {
-	const int width = get_width(img), height = get_height(img), components = get_components(img);
-	assert(COMPONENTS == components);
+	//const int width = get_width(img), height = get_height(img), components = get_components(img);
+	//assert(COMPONENTS == components);
 
-	unsigned char * buffer = (unsigned char *)malloc(sizeof(unsigned char) * width * height * components);
 
-	if(ROW == plan_ptr->orientation) {
-		for(int i = 0; i < height; ++i) {
-			for(int j = 0; j < width; ++j) {
-				int idx = ((i * width) + j);
-				unsigned char * data = buffer + (components * idx);
-				for(int c = 0; c < components; ++c) data[c] = pixels[idx].data[c];
-			}
-		}
-	} else {
-		assert(COLUMN == plan_ptr->orientation);
+	/*
+	if(ROW != plan_ptr->orientation) {
+		unsigned char * buffer = (unsigned char *)malloc(sizeof(unsigned char) * width * height * components);
 		for(int i = 0; i < width; ++i) {
 			for(int j = 0; j < height; ++j) {
 				int src_idx = ((i * height) + j);
@@ -173,13 +160,9 @@ void sync_pixels(struct Image * img, const SortPlan_t * plan_ptr, const Pixel_t 
 				for(int c = 0; c < components; ++c) data[c] = pixels[src_idx].data[c];
 			}
 		}
+		set_buffer(img, buffer);
 	}
-
-	set_buffer(img, buffer);
-}
-
-void destroy_pixel_list(Pixel_t * list) {
-	free(list);
+	*/
 }
 
 SortPlan_t * create_sort_plan(const Image * img, const Context_t * ctx) {
@@ -322,56 +305,56 @@ int get_first_non_light(const Pixel_t * pixels, sort_val_fn_t v, const int lengt
  * be nice if more value types are added.
  */
 
-int AVG_CMP(const Pixel_t * a, const Pixel_t * b) {
+CMP_FN AVG_CMP(const Pixel_t * a, const Pixel_t * b) {
 	return AVG_VAL(a) - AVG_VAL(b);
 }
 
-int MUL_CMP(const Pixel_t * a, const Pixel_t * b) {
+CMP_FN MUL_CMP(const Pixel_t * a, const Pixel_t * b) {
 	return MUL_VAL(a) - MUL_VAL(b);
 }
 
-int MAX_CMP(const Pixel_t * a, const Pixel_t * b) {
+CMP_FN MAX_CMP(const Pixel_t * a, const Pixel_t * b) {
 	return MAX_VAL(a) - MAX_VAL(b);
 }
 
-int MIN_CMP(const Pixel_t * a, const Pixel_t * b) {
+CMP_FN MIN_CMP(const Pixel_t * a, const Pixel_t * b) {
 	return MIN_VAL(a) - MIN_VAL(b);
 }
 
-int XOR_CMP(const Pixel_t * a, const Pixel_t * b) {
+CMP_FN XOR_CMP(const Pixel_t * a, const Pixel_t * b) {
 	return XOR_VAL(a) - XOR_VAL(b);
 }
 
-int AVG_VAL(const Pixel_t * a) {
+VAL_FN AVG_VAL(const Pixel_t * a) {
 	int avg = 0;
-	for(int c = 0, len = COMPONENTS; c < len; ++c) avg += a->data[c];
+	for(int c = 0, len = COMPONENTS; c < len; ++c) avg += ((unsigned char *)a)[c];
 	return avg / COMPONENTS;
 }
 
-int MUL_VAL(const Pixel_t * a) {
+VAL_FN MUL_VAL(const Pixel_t * a) {
 	int mul = 1;
-	for(int c = 0, len = COMPONENTS; c < len; ++c) mul *= a->data[c];
+	for(int c = 0, len = COMPONENTS; c < len; ++c) mul *= ((unsigned char *)a)[c];
 	return mul;
 }
 
-int MAX_VAL(const Pixel_t * a) {
+VAL_FN MAX_VAL(const Pixel_t * a) {
 	int max = -1;
 	for(int c = 0, len = COMPONENTS; c < len; ++c) {
-		if(a->data[c] > max) max = a->data[c];
+		if(((unsigned char *)a)[c] > max) max = ((unsigned char *)a)[c];
 	}
 	return max;
 }
 
-int MIN_VAL(const Pixel_t * a) {
+VAL_FN MIN_VAL(const Pixel_t * a) {
 	int min = 256;
 	for(int c = 0, len = COMPONENTS; c < len; ++c) {
-		if(a->data[c] < min) min = a->data[c];
+		if(((unsigned char *)a)[c] < min) min = ((unsigned char *)a)[c];
 	}
 	return min;
 }
 
-int XOR_VAL(const Pixel_t * a) {
-	int orx = a->data[0];
-	for(int c = 1, len = COMPONENTS; c < len; ++c) orx ^= a->data[c];
+VAL_FN XOR_VAL(const Pixel_t * a) {
+	int orx = ((unsigned char *)a)[0];
+	for(int c = 1, len = COMPONENTS; c < len; ++c) orx ^= ((unsigned char *)a)[c];
 	return orx;
 }
