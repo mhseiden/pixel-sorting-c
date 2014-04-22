@@ -122,7 +122,6 @@ void sort(struct Image * img, const Context_t * ctx) {
 }
 
 Pixel_t * create_pixel_list(const struct Image * const img, const SortPlan_t * plan_ptr) {
-	const Context_t * ctx = plan_ptr->context_ptr;
 	const unsigned char * const buffer = get_buffer(img);
 	const int width = get_width(img), height = get_height(img), components = get_components(img);
 	assert(COMPONENTS == components);

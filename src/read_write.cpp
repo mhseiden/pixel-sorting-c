@@ -13,8 +13,6 @@ using namespace std;
 
 static const int STRIDES = 1;
 
-static void sync_buffer(struct Image *);
-
 typedef struct jpeg_decompress_struct jpeg_decompress_t;
 typedef struct jpeg_compress_struct jpeg_compress_t;
 typedef struct jpeg_error_mgr jpeg_error_mgr_t;
@@ -108,7 +106,7 @@ void write_image(Image_t * img, const char * const file) {
 	const int c_row_stride = img->width * img->components;
 	JSAMPARRAY c_buf = (c_info.mem->alloc_sarray)((j_common_ptr)&c_info, JPOOL_IMAGE, c_row_stride, STRIDES);
 
-	for(int counter = 0; c_info.next_scanline < img->height; ++counter) {
+	for(int counter = 0; c_info.next_scanline < (unsigned int)img->height; ++counter) {
 		memcpy(*c_buf, img->buffer + (counter * img->width * img->components), c_row_stride);
 		jpeg_write_scanlines(&c_info, c_buf, STRIDES);
 	}
@@ -119,9 +117,6 @@ void write_image(Image_t * img, const char * const file) {
 
 	delete[] img->buffer;
 	delete img;
-}
-
-void sync_buffer(Image_t * img) {
 }
 
 int get_width(const struct Image * const img) {
