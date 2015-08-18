@@ -14,7 +14,7 @@ including it directly in the repo.
 
 ## Query Syntax
 A query takes the following form:
-``SORT [ROWS|COLS] [ASC|DESC] BY [AVG|MUL|MIN|MAX|XOR] WITH [FULL|FIXED <k>|DARK <k>|LIGHT <k>] RUNS``
+```SORT [ROWS|COLS] [ASC|DESC] BY [AVG|MUL|MIN|MAX|XOR] WITH [FULL|FIXED <k>|DARK <k>|LIGHT <k>] RUNS```
 Also note that multiple queries can be strung together using the `THEN`
 keyword. This enables easy chaining of operations without having to write the
 buffers to disk between each run.
