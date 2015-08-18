@@ -26,6 +26,7 @@ Note that multiple queries can be strung together using the `THEN` keyword. This
 
 ## Examples
 + [pixelsort'd Van Gogh](http://imgur.com/a/kmtxm)
++ [cubing "The Scream"](http://imgur.com/DktAGw9)
 
 ## Next Steps
 The goal is to add on as many interesting, exciting pixel sorting algorithms as can be conjured up from the internets' collective imagination! Additionally, it would be great to develop the query language to support some high-level transformations - for example [cubing](http://imgur.com/DktAGw9) could be a single operation. Fractal patterns would be great as well.
