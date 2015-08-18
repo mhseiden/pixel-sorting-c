@@ -7,7 +7,11 @@ SRC_DIR := src
 INCLUDE := include
 BIN     := bin
 
-OBJECTS := $(SRC_DIR)/sorting.o $(SRC_DIR)/sorting_context.o $(SRC_DIR)/read_write.o $(SRC_DIR)/main.o
+OBJECTS := \
+	$(SRC_DIR)/main.o \
+	$(SRC_DIR)/read_write.o \
+	$(SRC_DIR)/parser.o \
+	$(SRC_DIR)/sorting.o
 
 all: mkbin bin/pixelsort
 

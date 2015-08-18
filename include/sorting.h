@@ -2,8 +2,8 @@
 #define _SORTERS_H
 
 #include "read_write.h"
-#include "sorting_context.h"
+#include "parser.h"
 
-void sort(struct Image *, const struct PixelSortingContext *);
+void sort(struct Image *, const struct PixelSortQuery *);
 
 #endif
