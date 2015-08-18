@@ -10,7 +10,7 @@ including it directly in the repo.
 
 
 ## CLI Tool Usage
-``usage: pixelsort [source.jpg] [destination.jpg] <query>``
+``usage: pixelsort [source.jpg] [destination.jpg] "<query>"``
 
 ## Query Syntax
 A query takes the following form:
@@ -23,6 +23,8 @@ A query takes the following form:
 + The `WITH [...] RUNS` clause states how run boundaries are computed.
 
 Note that multiple queries can be strung together using the `THEN` keyword. This enables easy chaining of operations without having to write the buffers to disk between each run.
+
+Also note that the query must be quoted when submitted to the CLI Tool, since it should interpreted as a single string.
 
 ## Examples
 + [pixelsort'd Van Gogh](http://imgur.com/a/kmtxm)
