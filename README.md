@@ -2,6 +2,8 @@
 
 A command line tool for pixel sorting your images, written in C.
 
+![cubing](http://i.imgur.com/DktAGw9.jpg)
+
 ## Getting Started
 You'll need [libjpeg](http://libjpeg.sourceforge.net/) and GCC 4.7 to compile
 the binaries. Once you've handled the dependencies and successfully run `make`,
