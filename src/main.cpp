@@ -23,8 +23,8 @@
 int main(const int argc, const char** argv) {
 
     if(argc != 4) {
-	printf("usage:  pixelsort [src.jpg] [dest.jpg] <pixelsort query>\n");
-        printf("syntax: SORT [rows|columns] [asc|desc] BY [avg|mul|max|min|xor] WITH RUNS [all|dark <threshold>|light <threshold>] [THEN SORT ...]\n");
+	printf("example usage:  pixelsort [src.jpg] [dest.jpg] <pixelsort query>\n");
+        printf("query syntax: SORT [ROWS|COLUMNS] [ASC|DESC] BY [AVG|MUL|MAX|MIN|XOR] WITH [FULL|DARK <THRESHOLD>|LIGHT <THRESHOLD>|FIXED <THRESHOLD>] RUNS [THEN SORT ...]\n");
         return 1;
     }
 
