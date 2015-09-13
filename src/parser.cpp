@@ -10,6 +10,7 @@
 #include <cassert>
 
 #define COPY_BUFFER_SIZE 4096
+#define SUBQUERY_COUNT 256
 
 using namespace std;
 
@@ -45,7 +46,7 @@ struct PixelSortSubquery;
 
 typedef struct PixelSortQuery {
     size_t subquery_count;
-    struct PixelSortSubquery * subqueries[256];
+    struct PixelSortSubquery * subqueries[SUBQUERY_COUNT];
 } PixelSortQuery_t;
 
 typedef struct PixelSortSubquery {
@@ -75,15 +76,15 @@ PixelSortQuery_t * process_tokens(const char* query_string) {
 
 
     // create and initialize the query instance
-    PixelSortQuery_t * query = new PixelSortQuery_t;
+    PixelSortQuery_t * query = new PixelSortQuery_t();
     query->subquery_count = 0;
-
+    for(int i = 0; i < SUBQUERY_COUNT; ++i) query->subqueries[i] = NULL;
 
     // process tokens and create subqueries
     int token_idx = 0;
     do {
 	const size_t subquery_idx = query->subquery_count++;
-	PixelSortSubquery_t * subquery = new PixelSortSubquery_t;
+	PixelSortSubquery_t * subquery = new PixelSortSubquery_t();
 	query->subqueries[subquery_idx] = subquery;
 	token_idx = process_subquery(subquery, tokens, token_idx);
     } while(0 < token_idx);
